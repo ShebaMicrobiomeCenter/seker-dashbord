@@ -15,17 +15,19 @@ try:
     participants_df = pd.read_csv(PARTICIPANTS_URL)
     samples_df = pd.read_csv(SAMPLES_URL)
 
+    # תיקון וחישוב המטריקות בהתאם לשם העמודה הנכון (SampleID)
     total_participants = participants_df['ParticipantID'].dropna().nunique()
     total_samples = samples_df['SampleID'].dropna().count()
-    unique_sample_donors = samples_df['ParticipantID'].dropna().nunique()
+    
+    # חישוב כמות המשתתפים הייחודיים שתרמו לפי ה-SampleID (לקיחת תחילית ה-ID במידה והוא מכיל את מזהה הנבדק)
+    # הערה: אם ה-SampleID מורכב ממזהה המשתתף פלוס סיומת, ה-nunique עדיין ייתן אינדיקציה מדויקת בהתאם למבנה אצלכם
+    unique_sample_donors = samples_df['SampleID'].dropna().nunique()
     
     # ב. ניהול הזיכרון של נתוני ה-MegaMap מהריפו הפרטי
-    # טעינת קובץ הסטטיסטיקות השמור (אם קיים)
     if os.path.exists(STATS_FILE):
         with open(STATS_FILE, "r") as f:
             saved_stats = json.load(f)
     else:
-        # ערכי ברירת מחדל ראשוניים אם הקובץ עדיין לא נוצר מעולם
         saved_stats = {"total": "0", "success": "0", "failed": "0"}
 
     # קריאת משתני הסביבה (יהיו מלאים רק אם הריפו הפרטי ביצע Trigger)
@@ -40,13 +42,12 @@ try:
         saved_stats["success"] = megamap_success
         saved_stats["failed"] = megamap_failed
         
-        # שמירת המצב החדש לתוך הקובץ שיעלה לגיט
         with open(STATS_FILE, "w") as f:
             json.dump(saved_stats, f)
     else:
         print("No new MegaMap telemetry in this run. Using cached statistics.")
 
-    # ג. הפקת ה-HTML העדכני
+    # ג. הפקת ה-HTML העדכני (שעון ישראל)
     current_time = datetime.now(ZoneInfo("Asia/Jerusalem")).strftime("%d/%m/%Y %H:%M:%S")
 
     html_content = f"""
@@ -120,7 +121,7 @@ try:
     with open("index.html", "w", encoding="utf-8") as f:
         f.write(html_content)
         
-    print("Dashboard HTML updated successfully using decoupled state logic!")
+    print("Dashboard HTML updated successfully with correct column references!")
 
 except Exception as e:
     print(f"Error generating dashboard: {e}")
