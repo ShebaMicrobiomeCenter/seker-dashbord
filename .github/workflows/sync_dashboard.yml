@@ -4,7 +4,7 @@ on:
   schedule:
     # רץ פעם ביום ב-6 בבוקר כדי לרענן נתונים מ-GitLab
     - cron: '0 6 * * *'
-  workflow_dispatch: # מאפשר הרצה ידנית
+  workflow_dispatch: # מאפשר הרצה ידנית בלחיצת כפתור מתוך גיטהאב
   repository_dispatch:
     types: [megamap_update]
 
@@ -39,7 +39,19 @@ jobs:
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git add index.html pipeline_stats.json
-        git commit -m "Automated dashboard update [skip ci]" || echo "No changes to commit"
-        git push
         
+        # הוספת ה-index.html שתמיד נוצר
+        git add index.html
+        
+        # בדיקה אם קובץ ה-JSON קיים פיזית, ורק אז הוספה שלו (מונע שגיאות קריסה)
+        if [ -f pipeline_stats.json ]; then
+          git add pipeline_stats.json
+        fi
+        
+        # ביצוע ה-Commit רק אם יש שינויים אמיתיים
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "Automated dashboard update [skip ci]"
+          git push
+        fi
