@@ -2,10 +2,9 @@ name: Update Dashboard
 
 on:
   schedule:
-    # הרצה תקופתית פעמיים ביום (למשל לצורך רענון מול גיטלאב)
-    - cron: '0 6,18 * * *'
-  workflow_dispatch: # מאפשר לך להריץ גם ידנית בלחיצת כפתור
-  # שורות אלו מאפשרות לריפו הפרטי של המגמפ להעיר את הדשבורד עם נתונים
+    # רץ פעם ביום ב-6 בבוקר כדי לרענן נתונים מ-GitLab
+    - cron: '0 6 * * *'
+  workflow_dispatch: # מאפשר הרצה ידנית
   repository_dispatch:
     types: [megamap_update]
 
@@ -29,9 +28,18 @@ jobs:
 
     - name: Run update script
       env:
-        # העברת הנתונים שמגיעים מהריפו הפרטי (אם הגיעו) לתוך משתני סביבה של פייתון
-        MEGAMAP_TOTAL: ${{ github.event.client_payload.total_run || 'N/A' }}
-        MEGAMAP_SUCCESS: ${{ github.event.client_payload.success_count || 'N/A' }}
-        MEGAMAP_FAILED: ${{ github.event.client_payload.failed_count || 'N/A' }}
+        # המשתנים האלו יהיו קיימים *רק* אם הריצה הופעלה מהריפו הפרטי. 
+        # אם הריצה היא מה-Cron, הם יהיו ריקים (None).
+        MEGAMAP_TOTAL: ${{ github.event.client_payload.total_run }}
+        MEGAMAP_SUCCESS: ${{ github.event.client_payload.success_count }}
+        MEGAMAP_FAILED: ${{ github.event.client_payload.failed_count }}
       run: python update_dashboard.py
-      
+
+    - name: Commit and Push changes
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git add index.html pipeline_stats.json
+        git commit -m "Automated dashboard update [skip ci]" || echo "No changes to commit"
+        git push
+        
