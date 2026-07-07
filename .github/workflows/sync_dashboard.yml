@@ -1,0 +1,42 @@
+name: Update Dashboard Twice a Day
+
+on:
+  schedule:
+    # הרצה פעמיים ביום: ב-6:00 בבוקר וב-18:00 בערב (לפי שעון UTC)
+    - cron: '0 6,18 * * *'
+  workflow_dispatch: # מאפשר לך להריץ את זה גם ידנית בלחיצת כפתור
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. הורדת הקוד מהרפוזיטורי
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    # 2. התקנת סביבת פייתון
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-platform: 'x64'
+        python-version: '3.x'
+
+    # 3. התקנת הספריות הדרושות (Pandas ו-Requests)
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pandas requests
+
+    # 4. הרצת סקריפט העדכון
+    - name: Run update script
+      run: python update_dashboard.py
+
+    # 5. דחיפת קובץ ה-index.html המעודכן בחזרה ל-GitHub
+    - name: Commit and Push changes
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git add index.html
+        git commit -m "Automated dashboard update [skip ci]" || echo "No changes to commit"
+        git push
