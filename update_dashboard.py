@@ -47,10 +47,19 @@ try:
         with open(STATS_FILE, "w") as f:
             json.dump(saved_stats, f)
 
-    # חישוב אחוזים
+    # חישוב אחוזים ופערים
     pct_donors = calculate_percentage(unique_sample_donors, total_participants)
     pct_pipeline = calculate_percentage(saved_stats["total"], unique_sample_donors)
     pct_success = calculate_percentage(saved_stats["success"], saved_stats["total"])
+
+    # חישוב פערים לטולטיפים
+    gap_2_1 = max(0, total_participants - unique_sample_donors)
+    gap_3_2 = max(0, unique_sample_donors - int(saved_stats["total"]))
+    gap_4_3 = max(0, int(saved_stats["total"]) - int(saved_stats["success"]))
+
+    tooltip_2 = f"חסרים {gap_2_1} משתתפים: בעיקר כאלה שפרשו מהמחקר"
+    tooltip_3 = f"חסרות {gap_3_2} דגימות: רובן בתהליך עבודה או מחכות ל-PCR במנה הבאה"
+    tooltip_4 = f"חסרות {gap_4_3} דגימות: רובן לא הגיעו לסף הקריאות הנדרש"
 
     current_time = datetime.now(ZoneInfo("Asia/Jerusalem")).strftime("%d/%m/%Y %H:%M:%S")
 
@@ -224,7 +233,7 @@ try:
                 </div>
 
                 <div class="stage-wrapper">
-                    <div class="stage stage-2">
+                    <div class="stage stage-2" title="{tooltip_2}">
                         <div class="stage-label">משתתפים שתרמו דגימה</div>
                         <div class="stage-value">{unique_sample_donors}</div>
                     </div>
@@ -232,7 +241,7 @@ try:
                 </div>
 
                 <div class="stage-wrapper">
-                    <div class="stage stage-3">
+                    <div class="stage stage-3" title="{tooltip_3}">
                         <div class="stage-label">דגימות שזרמו ל-Pipeline</div>
                         <div class="stage-value">{saved_stats["total"]}</div>
                     </div>
@@ -240,7 +249,7 @@ try:
                 </div>
 
                 <div class="stage-wrapper">
-                    <div class="stage stage-4">
+                    <div class="stage stage-4" title="{tooltip_4}">
                         <div class="stage-label">הסתיימו בהצלחה <span class="en-text">(>4K reads)</span></div>
                         <div class="stage-value">{saved_stats["success"]}</div>
                     </div>
