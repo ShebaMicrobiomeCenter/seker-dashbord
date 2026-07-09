@@ -130,6 +130,76 @@
             .stat-card .lab { font-size: 1rem; color: var(--text-gray); font-weight: 500; display: block; }
             .stat-card .update-date { color: var(--text-gray); opacity: 0.6; }
 
+            /* Histogram Section Styling */
+            .histogram-section {
+                margin-top: 60px;
+                border-top: 2px solid #f0f4f8;
+                padding-top: 40px;
+            }
+            .hist-chart-container {
+                background: #fdfdfd;
+                border: 1px solid #eef2f6;
+                border-radius: 20px;
+                padding: 35px;
+                margin-top: 20px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+            }
+            .hist-chart {
+                display: flex;
+                justify-content: space-around;
+                align-items: flex-end;
+                height: 250px;
+                padding-bottom: 10px;
+                border-bottom: 2px solid #e2e8f0;
+                margin-bottom: 15px;
+            }
+            .hist-col {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                width: 16%;
+            }
+            .hist-bar-wrapper {
+                height: 180px;
+                width: 100%;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-end;
+                align-items: center;
+                position: relative;
+            }
+            .hist-bar-value {
+                font-size: 1rem;
+                font-weight: 700;
+                color: var(--text-dark);
+                margin-bottom: 8px;
+            }
+            .hist-bar {
+                width: 100%;
+                max-width: 50px;
+                background: linear-gradient(to top, var(--gradient-start), var(--gradient-end));
+                border-radius: 8px 8px 0 0;
+                transition: all 0.3s ease;
+                cursor: pointer;
+            }
+            .hist-bar:hover {
+                background: linear-gradient(to top, var(--sheba-blue), #00a0e9);
+                transform: scaleX(1.05);
+                box-shadow: 0 4px 10px rgba(0, 119, 200, 0.3);
+            }
+            .hist-label {
+                font-size: 0.95rem;
+                font-weight: 600;
+                color: var(--text-dark);
+                margin-top: 8px;
+                text-align: center;
+            }
+            .hist-pct {
+                font-size: 0.8rem;
+                color: var(--text-gray);
+                margin-top: 2px;
+            }
+
             .footer {
                 margin-top: 60px;
                 text-align: center;
@@ -152,6 +222,15 @@
                 .stage-3 { clip-path: polygon(6% 0%, 94% 0%, 91% 100%, 9% 100%); }
                 .stage-4 { clip-path: polygon(9% 0%, 91% 0%, 88% 100%, 12% 100%); }
                 .stage-5 { clip-path: polygon(12% 0%, 88% 0%, 85% 100%, 15% 100%); }
+
+                /* Mobile responsive histogram */
+                .hist-chart-container { padding: 20px 10px; }
+                .hist-chart { height: 160px; }
+                .hist-bar-wrapper { height: 110px; }
+                .hist-col { width: 18%; }
+                .hist-bar { max-width: 35px; }
+                .hist-label { font-size: 0.8rem; }
+                .hist-pct { font-size: 0.7rem; }
             }
         </style>
     </head>
@@ -184,7 +263,7 @@
                 <div class="stage-wrapper">
                     <div class="stage stage-3" title="235 משתתפים שדגימה שלהם לא נקלטה במערכת">
                         <div class="stage-label">משתתפים שתרמו דגימה</div>
-                        <div class="update-date">עודכן: 09/07/2026 00:00</div>
+                        <div class="update-date">עודכן: 09/07/2026 12:48</div>
                         <div class="stage-value">1387</div>
                     </div>
                     <div class="pct-badge">85.5% משלב קודם</div>
@@ -213,9 +292,9 @@
                 <div class="sup-header">נתונים משלימים</div>
                 <div class="grid">
                     <div class="stat-card">
-                        <span class="val">5494</span>
+                        <span class="val">1387</span>
                         <span class="lab">סך כל הדגימות במקפיא</span>
-                        <div class="update-date">עודכן: 09/07/2026 00:00</div>
+                        <div class="update-date">עודכן: 09/07/2026 12:48</div>
                     </div>
                     <div class="stat-card">
                         <span class="val">26</span>
@@ -229,9 +308,57 @@
                     </div>
                 </div>
             </div>
+
+            <div class="histogram-section">
+                <div class="sup-header">התפלגות מספר דגימות למשתתף ייחודי (UniqueID)</div>
+                <div class="hist-chart-container">
+                    <div class="hist-chart">
+
+        <div class="hist-col">
+            <div class="hist-bar-wrapper">
+                <div class="hist-bar-value">1172</div>
+                <div class="hist-bar" style="height: 100%;" title="1172 משתתפים ייחודיים (92.1%)"></div>
+            </div>
+            <div class="hist-label">דגימה אחת</div>
+            <div class="hist-pct">92.1%</div>
+        </div>
+
+        <div class="hist-col">
+            <div class="hist-bar-wrapper">
+                <div class="hist-bar-value">86</div>
+                <div class="hist-bar" style="height: 7%;" title="86 משתתפים ייחודיים (6.8%)"></div>
+            </div>
+            <div class="hist-label">2 דגימות</div>
+            <div class="hist-pct">6.8%</div>
+        </div>
+
+        <div class="hist-col">
+            <div class="hist-bar-wrapper">
+                <div class="hist-bar-value">13</div>
+                <div class="hist-bar" style="height: 5%;" title="13 משתתפים ייחודיים (1.0%)"></div>
+            </div>
+            <div class="hist-label">3 דגימות</div>
+            <div class="hist-pct">1.0%</div>
+        </div>
+
+        <div class="hist-col">
+            <div class="hist-bar-wrapper">
+                <div class="hist-bar-value">1</div>
+                <div class="hist-bar" style="height: 5%;" title="1 משתתפים ייחודיים (0.1%)"></div>
+            </div>
+            <div class="hist-label">4 דגימות</div>
+            <div class="hist-pct">0.1%</div>
+        </div>
+
+                    </div>
+                    <div class="update-date" style="text-align: center; margin-top: 10px; color: var(--text-gray); opacity: 0.6;">
+                        עודכן: 09/07/2026 12:48
+                    </div>
+                </div>
+            </div>
             
             <div class="footer">
-                עודכן לאחרונה באופן אוטומטי ב- 09/07/2026 12:38:19 (שעון ישראל)
+                עודכן לאחרונה באופן אוטומטי ב- 09/07/2026 13:34:30 (שעון ישראל)
             </div>
         </div>
     </body>

@@ -8,6 +8,7 @@ from zoneinfo import ZoneInfo
 PROJECT_ID = "84191474"
 PARTICIPANTS_URL = f"https://gitlab.com/api/v4/projects/{PROJECT_ID}/repository/files/participants.csv/raw?ref=main"
 SAMPLES_URL = f"https://gitlab.com/api/v4/projects/{PROJECT_ID}/repository/files/samples.csv/raw?ref=main"
+RECURRING_URL = f"https://gitlab.com/api/v4/projects/{PROJECT_ID}/repository/files/recurring.csv/raw?ref=main"
 STATS_FILE = "pipeline_stats.json"
 
 def get_last_commit_date(file_path):
@@ -41,19 +42,46 @@ try:
     print("Fetching recruitment data from GitLab...")
     participants_df = pd.read_csv(PARTICIPANTS_URL)
     samples_df = pd.read_csv(SAMPLES_URL)
+    recurring_df = pd.read_csv(RECURRING_URL)
 
     participants_update_date = get_last_commit_date("participants.csv")
     samples_update_date = get_last_commit_date("samples.csv")
+    recurring_update_date = get_last_commit_date("recurring.csv")
 
     total_participants = participants_df['ParticipantID'].dropna().nunique()
 
     # Calculate withdrawn participants (Status == 'פרש')
     withdrawn_participants = participants_df[participants_df['Status'] == 'פרש']['ParticipantID'].dropna().nunique()
+    if withdrawn_participants == 0:
+        withdrawn_participants = participants_df[participants_df['Status'] == 'פרש']['ParticipantID'].dropna().nunique()
+
     active_participants = total_participants - withdrawn_participants
 
     unique_sample_donors = samples_df['SampleID'].dropna().nunique()
     total_samples = samples_df['SampleID'].dropna().count()
     
+    # חישוב התפלגות דגימות ל-UniqueID מתוך recurring.csv
+    samples_df['DerivedParticipantID'] = samples_df['SampleID'].str.replace('SK', '', case=False).astype(int)
+
+    # חיבור שמאל (Left Join) בין recurring_df ל-samples_df
+    merged_recurring = pd.merge(recurring_df, samples_df, left_on='ParticipantID', right_on='DerivedParticipantID', how='left')
+
+    # ספירת דגימות תקינות לכל UniqueID
+    samples_per_unique = merged_recurring.groupby('UniqueID')['SampleID'].count()
+
+    # יצירת מילון מלא עם כל הערכים האפשריים (1, 2, 3, 4 דגימות - ללא 0) כדי שלא יחסרו עמודות
+    recurring_distribution = {1: 0, 2: 0, 3: 0, 4: 0}
+    actual_distribution = samples_per_unique.value_counts()
+    for count_val, count_unique in actual_distribution.items():
+        if count_val > 0:
+            if count_val in recurring_distribution:
+                recurring_distribution[count_val] = count_unique
+            else:
+                recurring_distribution[count_val] = count_unique
+
+    # מציאת הערך המקסימלי לצורך קביעת גובה יחסי של העמודות בגרף (עבור CSS height ב-%)
+    max_count_val = max(recurring_distribution.values()) if recurring_distribution else 1
+
     # ב. ניהול הזיכרון של נתוני ה-MegaMap
     if os.path.exists(STATS_FILE):
         with open(STATS_FILE, "r") as f:
@@ -92,6 +120,31 @@ try:
     tooltip_5 = f"חסרות {gap_5_4} דגימות: רובן לא הגיעו לסף הקריאות הנדרש"
 
     current_time = datetime.now(ZoneInfo("Asia/Jerusalem")).strftime("%d/%m/%Y %H:%M:%S")
+
+    # בניית ה-HTML של עמודות ההיסטוגרמה בצורה דינמית
+    histogram_bars_html = ""
+    for num_samples in sorted(recurring_distribution.keys()):
+        count_unique_ids = recurring_distribution[num_samples]
+        percentage_of_total = calculate_percentage(count_unique_ids, sum(recurring_distribution.values()))
+        bar_height_percent = max(5, round((count_unique_ids / max_count_val) * 100))
+
+        if num_samples == 1:
+            label_text = "דגימה אחת"
+        elif num_samples == 2:
+            label_text = "2 דגימות"
+        else:
+            label_text = f"{num_samples} דגימות"
+
+        histogram_bars_html += f"""
+        <div class="hist-col">
+            <div class="hist-bar-wrapper">
+                <div class="hist-bar-value">{count_unique_ids}</div>
+                <div class="hist-bar" style="height: {bar_height_percent}%;" title="{count_unique_ids} משתתפים ייחודיים ({percentage_of_total}%)"></div>
+            </div>
+            <div class="hist-label">{label_text}</div>
+            <div class="hist-pct">{percentage_of_total}%</div>
+        </div>
+        """
 
     html_content = f"""
     <!DOCTYPE html>
@@ -225,6 +278,76 @@ try:
             .stat-card .lab {{ font-size: 1rem; color: var(--text-gray); font-weight: 500; display: block; }}
             .stat-card .update-date {{ color: var(--text-gray); opacity: 0.6; }}
 
+            /* Histogram Section Styling */
+            .histogram-section {{
+                margin-top: 60px;
+                border-top: 2px solid #f0f4f8;
+                padding-top: 40px;
+            }}
+            .hist-chart-container {{
+                background: #fdfdfd;
+                border: 1px solid #eef2f6;
+                border-radius: 20px;
+                padding: 35px;
+                margin-top: 20px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+            }}
+            .hist-chart {{
+                display: flex;
+                justify-content: space-around;
+                align-items: flex-end;
+                height: 250px;
+                padding-bottom: 10px;
+                border-bottom: 2px solid #e2e8f0;
+                margin-bottom: 15px;
+            }}
+            .hist-col {{
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                width: 16%;
+            }}
+            .hist-bar-wrapper {{
+                height: 180px;
+                width: 100%;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-end;
+                align-items: center;
+                position: relative;
+            }}
+            .hist-bar-value {{
+                font-size: 1rem;
+                font-weight: 700;
+                color: var(--text-dark);
+                margin-bottom: 8px;
+            }}
+            .hist-bar {{
+                width: 100%;
+                max-width: 50px;
+                background: linear-gradient(to top, var(--gradient-start), var(--gradient-end));
+                border-radius: 8px 8px 0 0;
+                transition: all 0.3s ease;
+                cursor: pointer;
+            }}
+            .hist-bar:hover {{
+                background: linear-gradient(to top, var(--sheba-blue), #00a0e9);
+                transform: scaleX(1.05);
+                box-shadow: 0 4px 10px rgba(0, 119, 200, 0.3);
+            }}
+            .hist-label {{
+                font-size: 0.95rem;
+                font-weight: 600;
+                color: var(--text-dark);
+                margin-top: 8px;
+                text-align: center;
+            }}
+            .hist-pct {{
+                font-size: 0.8rem;
+                color: var(--text-gray);
+                margin-top: 2px;
+            }}
+
             .footer {{
                 margin-top: 60px;
                 text-align: center;
@@ -247,6 +370,15 @@ try:
                 .stage-3 {{ clip-path: polygon(6% 0%, 94% 0%, 91% 100%, 9% 100%); }}
                 .stage-4 {{ clip-path: polygon(9% 0%, 91% 0%, 88% 100%, 12% 100%); }}
                 .stage-5 {{ clip-path: polygon(12% 0%, 88% 0%, 85% 100%, 15% 100%); }}
+
+                /* Mobile responsive histogram */
+                .hist-chart-container {{ padding: 20px 10px; }}
+                .hist-chart {{ height: 160px; }}
+                .hist-bar-wrapper {{ height: 110px; }}
+                .hist-col {{ width: 18%; }}
+                .hist-bar {{ max-width: 35px; }}
+                .hist-label {{ font-size: 0.8rem; }}
+                .hist-pct {{ font-size: 0.7rem; }}
             }}
         </style>
     </head>
@@ -324,6 +456,18 @@ try:
                     </div>
                 </div>
             </div>
+
+            <div class="histogram-section">
+                <div class="sup-header">התפלגות מספר דגימות למשתתף ייחודי (UniqueID)</div>
+                <div class="hist-chart-container">
+                    <div class="hist-chart">
+                        {histogram_bars_html}
+                    </div>
+                    <div class="update-date" style="text-align: center; margin-top: 10px; color: var(--text-gray); opacity: 0.6;">
+                        עודכן: {recurring_update_date}
+                    </div>
+                </div>
+            </div>
             
             <div class="footer">
                 עודכן לאחרונה באופן אוטומטי ב- {current_time} (שעון ישראל)
@@ -336,7 +480,7 @@ try:
     with open("index.html", "w", encoding="utf-8") as f:
         f.write(html_content)
         
-    print("Dashboard HTML updated successfully with a refined funnel design!")
+    print("Dashboard HTML updated successfully with a refined funnel design and UniqueID sample distribution histogram!")
 
 except Exception as e:
     print(f"Error generating dashboard: {e}")
