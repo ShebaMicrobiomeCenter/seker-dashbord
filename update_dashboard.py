@@ -172,14 +172,14 @@ try:
 
             .pct-badge {{
                 position: absolute;
-                bottom: -10px;
+                bottom: -14px;
                 left: 50%;
                 transform: translateX(-50%);
                 background: var(--text-dark);
                 color: white;
-                padding: 4px 14px;
+                padding: 2px 10px;
                 border-radius: 20px;
-                font-size: 0.85rem;
+                font-size: 0.8rem;
                 font-weight: 600;
                 z-index: 20;
                 box-shadow: 0 4px 6px rgba(0,0,0,0.1);
