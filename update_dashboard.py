@@ -125,7 +125,9 @@ try:
         else:
             reports_stats["last_updated"] = datetime.now(ZoneInfo("Asia/Jerusalem")).strftime("%d/%m/%Y %H:%M")
 
-    reports_update_date = reports_stats.get("last_updated", "N/A")
+    reports_update_date = get_last_commit_date("reports.csv")
+    if reports_update_date == "N/A":
+        reports_update_date = reports_stats.get("last_updated", "N/A")
 
     # חישוב אחוזים ופערים
     pct_active = calculate_percentage(active_participants, total_participants)
