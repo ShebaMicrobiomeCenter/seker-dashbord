@@ -244,9 +244,9 @@ try:
             .bar-container {{
                 flex-grow: 1;
                 position: relative;
-                height: 38px;
+                height: 48px;
                 background-color: #eef2f6;
-                border-radius: 19px;
+                border-radius: 24px;
                 overflow: visible;
                 display: flex;
                 align-items: center;
@@ -255,22 +255,32 @@ try:
             .bar-fill {{
                 height: 100%;
                 background: linear-gradient(to left, var(--gradient-start), var(--gradient-end));
-                border-radius: 19px;
+                border-radius: 24px;
                 display: flex;
-                align-items: center;
-                justify-content: flex-start; /* flex-start in RTL is right side */
-                padding: 0 15px;
+                flex-direction: column;
+                align-items: flex-start; /* right side in RTL */
+                justify-content: center;
+                padding: 0 20px;
                 box-sizing: border-box;
                 transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
                 box-shadow: 0 2px 4px rgba(0, 74, 128, 0.2);
                 position: relative;
-                min-width: 80px;
+                min-width: 110px;
             }}
             .stage-value {{
                 color: white;
                 font-weight: 800;
                 font-size: 1.15rem;
                 text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+                line-height: 1.1;
+            }}
+            .stage-update {{
+                color: rgba(255, 255, 255, 0.75);
+                font-size: 0.68rem;
+                font-weight: 400;
+                margin-top: 2px;
+                text-shadow: 0 1px 1px rgba(0,0,0,0.15);
+                white-space: nowrap;
             }}
             .pct-badge {{
                 position: absolute;
@@ -301,20 +311,6 @@ try:
             .pct-lbl {{
                 font-weight: 500;
                 opacity: 0.95;
-            }}
-            .row-update {{
-                width: 125px;
-                min-width: 125px;
-                text-align: left;
-                font-size: 0.75rem;
-                color: var(--text-gray);
-                opacity: 0.45;
-                font-weight: 400;
-                white-space: nowrap;
-                transition: opacity 0.2s;
-            }}
-            .funnel-row:hover .row-update {{
-                opacity: 0.85;
             }}
             .en-text {{ direction: ltr; display: inline-block; }}
 
@@ -457,13 +453,6 @@ try:
                 .bar-container {{
                     margin-left: 20px; /* leave room for badge */
                 }}
-                .row-update {{
-                    width: 100%;
-                    min-width: unset;
-                    text-align: right;
-                    margin-top: 2px;
-                    opacity: 0.6;
-                }}
                 .pct-badge .pct-lbl {{
                     display: none;
                 }}
@@ -493,10 +482,10 @@ try:
                     <div class="bar-container">
                         <div class="bar-fill" style="width: {width_1}%;">
                             <span class="stage-value">{total_participants}</span>
+                            <span class="stage-update">עודכן: {participants_update_date}</span>
                             <span class="pct-badge"><span class="pct-num">100%</span> <span class="pct-lbl">בסיס</span></span>
                         </div>
                     </div>
-                    <div class="row-update">עודכן: {participants_update_date}</div>
                 </div>
 
                 <!-- Stage 2 -->
@@ -505,10 +494,10 @@ try:
                     <div class="bar-container">
                         <div class="bar-fill" style="width: {width_2}%;">
                             <span class="stage-value">{active_participants}</span>
+                            <span class="stage-update">עודכן: {participants_update_date}</span>
                             <span class="pct-badge"><span class="pct-num">{pct_active}%</span> <span class="pct-lbl">משלב קודם</span></span>
                         </div>
                     </div>
-                    <div class="row-update">עודכן: {participants_update_date}</div>
                 </div>
 
                 <!-- Stage 3 -->
@@ -517,10 +506,10 @@ try:
                     <div class="bar-container">
                         <div class="bar-fill" style="width: {width_3}%;">
                             <span class="stage-value">{unique_sample_donors}</span>
+                            <span class="stage-update">עודכן: {samples_update_date}</span>
                             <span class="pct-badge"><span class="pct-num">{pct_donors}%</span> <span class="pct-lbl">משלב קודם</span></span>
                         </div>
                     </div>
-                    <div class="row-update">עודכן: {samples_update_date}</div>
                 </div>
 
                 <!-- Stage 4 -->
@@ -529,10 +518,10 @@ try:
                     <div class="bar-container">
                         <div class="bar-fill" style="width: {width_4}%;">
                             <span class="stage-value">{saved_stats["total"]}</span>
+                            <span class="stage-update">עודכן: {sequencing_update_date}</span>
                             <span class="pct-badge"><span class="pct-num">{pct_pipeline}%</span> <span class="pct-lbl">משלב קודם</span></span>
                         </div>
                     </div>
-                    <div class="row-update">עודכן: {sequencing_update_date}</div>
                 </div>
 
                 <!-- Stage 5 -->
@@ -541,10 +530,10 @@ try:
                     <div class="bar-container">
                         <div class="bar-fill" style="width: {width_5}%;">
                             <span class="stage-value">{saved_stats["success"]}</span>
+                            <span class="stage-update">עודכן: {sequencing_update_date}</span>
                             <span class="pct-badge"><span class="pct-num">{pct_success}%</span> <span class="pct-lbl">משלב קודם</span></span>
                         </div>
                     </div>
-                    <div class="row-update">עודכן: {sequencing_update_date}</div>
                 </div>
 
                 <!-- Stage 6 -->
@@ -553,10 +542,10 @@ try:
                     <div class="bar-container">
                         <div class="bar-fill" style="width: {width_6}%;">
                             <span class="stage-value">{reports_stats["report_count"]}</span>
+                            <span class="stage-update">עודכן: {reports_update_date}</span>
                             <span class="pct-badge"><span class="pct-num">{pct_reports}%</span> <span class="pct-lbl">משלב קודם</span></span>
                         </div>
                     </div>
-                    <div class="row-update">עודכן: {reports_update_date}</div>
                 </div>
             </div>
 
