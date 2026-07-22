@@ -93,11 +93,26 @@ try:
     megamap_total = os.getenv('MEGAMAP_TOTAL')
     megamap_success = os.getenv('MEGAMAP_SUCCESS')
     megamap_failed = os.getenv('MEGAMAP_FAILED')
+    collected_last_week = os.getenv('COLLECTED_LAST_WEEK')
+    collected_last_2_weeks = os.getenv('COLLECTED_LAST_2_WEEKS')
+    collected_last_month = os.getenv('COLLECTED_LAST_MONTH')
+    collected_last_2_months = os.getenv('COLLECTED_LAST_2_MONTHS')
+    collected_last_year = os.getenv('COLLECTED_LAST_YEAR')
 
     if megamap_total and megamap_total.strip() != "":
         saved_stats["total"] = megamap_total
         saved_stats["success"] = megamap_success
         saved_stats["failed"] = megamap_failed
+    if collected_last_week is not None and collected_last_week.strip() != "":
+        saved_stats["collected_last_week"] = collected_last_week
+    if collected_last_2_weeks is not None and collected_last_2_weeks.strip() != "":
+        saved_stats["collected_last_2_weeks"] = collected_last_2_weeks
+    if collected_last_month is not None and collected_last_month.strip() != "":
+        saved_stats["collected_last_month"] = collected_last_month
+    if collected_last_2_months is not None and collected_last_2_months.strip() != "":
+        saved_stats["collected_last_2_months"] = collected_last_2_months
+    if collected_last_year is not None and collected_last_year.strip() != "":
+        saved_stats["collected_last_year"] = collected_last_year
         saved_stats["last_updated"] = datetime.now(ZoneInfo("Asia/Jerusalem")).strftime("%d/%m/%Y %H:%M")
         with open(STATS_FILE, "w") as f:
             json.dump(saved_stats, f)
